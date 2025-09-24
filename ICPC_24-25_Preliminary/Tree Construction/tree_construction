@@ -1,0 +1,212 @@
+    //
+    // Created by Shlok Jain on 28/08/25.
+    //
+    #include <chrono>
+    #include <iostream>
+    #include <map>
+    #include <random>
+    #include <unordered_map>
+    #include <vector>
+    #include <iomanip>
+    #include <cstring>
+    #include <algorithm>
+    #include <functional>
+    #include <climits>
+    #include <queue>
+    #include <bitset>
+    #include <cassert>
+    #include <set>
+    #include <stack>
+    #include <unordered_set>
+    #include <string.h>
+
+    using namespace std;
+    using namespace std::chrono;
+
+    typedef long long ll;
+    typedef long double lld;
+
+    const ll N = 2*(1e6);
+    vector<ll> is_prime(N, 1);
+
+    struct DSU {
+        vector<ll> p, sz;
+
+        DSU(ll n = 0) {
+            p.resize(n+1);
+            sz.assign(n+1,1);
+            for(ll i = 1; i <= n; i++) p[i] = i;
+        }
+
+        ll find(ll x) {
+            return p[x] == x ? x : p[x] = find(p[x]);
+        }
+
+        bool uni(ll a, ll b) {
+            a = find(a);
+            b = find(b);
+
+            if(a == b) return false;
+
+            if(sz[a] < sz[b]) swap(a,b);
+            p[b] = a;
+            sz[a] += sz[b];
+
+            return true;
+        }
+    };
+
+    void sieve_of_eratosthenes() {
+        is_prime[0] = is_prime[1] = false;
+        for (ll i = 2; i * i <= N; i++) {
+            if (is_prime[i]) {
+                for (ll j = i * i; j <= N; j += i) {
+                    is_prime[j] = false;
+                }
+            }
+        }
+    }
+
+    ll derangements(ll n, ll m, ll k) {
+        vector<ll> dp(n + 1);
+
+        dp[1] = 0;
+        dp[2] = 1;
+
+        for (ll i = 3; i <= n; i++) {
+            dp[i] = (i - 1) * (dp[i - 1] + dp[i - 2]);
+        }
+
+        return dp[n];
+    }
+
+    long long binpow(long long a, long long b, long long m) {
+        a %= m;
+        long long res = 1;
+        while (b > 0) {
+            if (b & 1)
+                res = res * a % m;
+            a = a * a % m;
+            b >>= 1;
+        }
+        return res;
+    }
+ll INF = LLONG_MAX;
+
+    void solve() {
+        ll n, d, l;
+        cin >> n >> d >> l;
+
+        if (d >= n) {
+            cout << -1 << "\n";
+            return;
+        }
+        if (l < 2 || l > n) {
+            cout << -1 << "\n";
+            return;
+        }
+        if (d == 1) {
+            if (n == 2 && l == 2) {
+                cout << "1 2\n";
+            } else {
+                cout << -1 << "\n";
+            }
+            return;
+        }
+
+        ll base = d + 1;
+        ll rem_all = n - base;
+        ll extraLeavesWanted = l - 2;
+
+        vector<pair<ll,ll>> caps;
+        for (ll i = 2; i <= d; ++i) {
+            ll cap = min(i - 1, d + 1 - i);
+            if (cap > 0) caps.push_back({cap, i});
+        }
+        sort(caps.begin(), caps.end(), [](const pair<ll,ll>& a, const pair<ll,ll>& b){
+            return a.first > b.first;
+        });
+
+        vector<pair<ll,ll>> attachments;
+        ll rem = rem_all;
+        for (auto &p : caps) {
+            if (rem == 0) break;
+            ll take = min(rem, p.first);
+            if (take > 0) {
+                attachments.push_back({p.second, take});
+                rem -= take;
+            }
+        }
+        if (rem > 0) {
+            if (caps.empty()) {
+                cout << -1 << "\n";
+                return;
+            }
+            ll anchor = caps[0].second;
+            for (ll i = 0; i < rem; ++i) attachments.push_back({anchor, 1});
+            rem = 0;
+        }
+
+        ll currentChains = attachments.size();
+        ll min_extra_leaves = currentChains;
+        ll max_extra_leaves = rem_all;
+
+        if (extraLeavesWanted < min_extra_leaves || extraLeavesWanted > max_extra_leaves) {
+            cout << -1 << "\n";
+            return;
+        }
+
+        deque<ll> q;
+        for (ll i = 0; i < attachments.size(); ++i) {
+            if (attachments[i].second > 1) q.push_back(i);
+        }
+        while (attachments.size() < extraLeavesWanted) {
+            if (q.empty()) {
+                break;
+            }
+            ll idx = q.front();
+            q.pop_front();
+            attachments[idx].second -= 1;
+            attachments.push_back({attachments[idx].first, 1});
+            if (attachments[idx].second > 1) q.push_back(idx);
+        }
+        if (attachments.size() != extraLeavesWanted) {
+            cout << -1 << "\n";
+            return;
+        }
+
+        vector<pair<ll,ll>> edges;
+        for (ll i = 1; i <= d; ++i) edges.push_back({i, i + 1});
+
+        ll nextNode = d + 2;
+        for (auto &att : attachments) {
+            ll parent = att.first;
+            ll length = att.second;
+            for (ll j = 0; j < length; ++j) {
+                edges.push_back({parent, nextNode});
+                parent = nextNode;
+                nextNode++;
+            }
+        }
+
+        if (nextNode - 1 != n) {
+            cout << -1 << "\n";
+            return;
+        }
+
+        for (auto &e : edges) cout << e.first << " " << e.second << "\n";
+
+    }
+
+    int main() {
+        ios::sync_with_stdio(false);
+        cin.tie(nullptr);
+        // sieve_of_eratosthenes();
+        // //
+        // freopen("moobuzz.in", "r", stdin);
+        // freopen("moobuzz.out", "w", stdout);
+
+        ll tc = 1;
+        // cin >> tc;
+        for (ll t = 0; t < tc; t++) solve();
+    }
