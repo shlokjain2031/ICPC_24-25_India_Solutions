@@ -97,6 +97,7 @@ ll INF = LLONG_MAX;
         ll n, d, l;
         cin >> n >> d >> l;
 
+        // Basic initial checks
         if (d >= n) {
             cout << -1 << "\n";
             return;
@@ -118,6 +119,11 @@ ll INF = LLONG_MAX;
         ll rem_all = n - base;
         ll extraLeavesWanted = l - 2;
 
+        // Basically, we imagine that we set d+1 nodes in a linear fashion and we make chains on these
+        // The first and last nodes are already leaf nodes
+        // Except them, as we go from left to right or right to left. The number of nodes I can add in a single
+        // chain increase, reach max and then decrease again so I store that to know the max num of leaves that
+        // we can store
         vector<pair<ll,ll>> caps;
         for (ll i = 2; i <= d; ++i) {
             ll cap = min(i - 1, d + 1 - i);
@@ -127,6 +133,7 @@ ll INF = LLONG_MAX;
             return a.first > b.first;
         });
 
+        // We add these and decrease the remaining number of nodes we need to add
         vector<pair<ll,ll>> attachments;
         ll rem = rem_all;
         for (auto &p : caps) {
@@ -137,6 +144,11 @@ ll INF = LLONG_MAX;
                 rem -= take;
             }
         }
+
+        // So basically, the middle node which has the longest chain possible
+        // Can act as an anchor for all the remaining nodes left
+        // This will keep the diameter status and will add lead nodes if needed
+        // separate from the non-leaf nodes we add in the middle of the chain
         if (rem > 0) {
             if (caps.empty()) {
                 cout << -1 << "\n";
@@ -156,6 +168,8 @@ ll INF = LLONG_MAX;
             return;
         }
 
+        // Now for all our chains, till we meet the criteria of leaves we break the chain and keep
+        // adding till it does not have more than one.
         deque<ll> q;
         for (ll i = 0; i < attachments.size(); ++i) {
             if (attachments[i].second > 1) q.push_back(i);
@@ -170,11 +184,14 @@ ll INF = LLONG_MAX;
             attachments.push_back({attachments[idx].first, 1});
             if (attachments[idx].second > 1) q.push_back(idx);
         }
+
+        // Sanity check
         if (attachments.size() != extraLeavesWanted) {
             cout << -1 << "\n";
             return;
         }
 
+        // Build the tree
         vector<pair<ll,ll>> edges;
         for (ll i = 1; i <= d; ++i) edges.push_back({i, i + 1});
 
