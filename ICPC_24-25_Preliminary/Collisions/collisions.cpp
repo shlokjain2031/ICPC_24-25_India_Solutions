@@ -105,6 +105,10 @@ void solve() {
         sort(cols[i].begin(), cols[i].end());
     }
 
+    // Most important insight being that columns are affected by two possible collisions
+    // One where the balls will intersect while moving and one after landing so for each
+    // column we calculate that starting from bottom to top and increasing based on
+    // the different cases
     vector<ll> step_1(n+1, 0), step_2(n+1, 0);
     for (ll i = 1; i < n; i++) {
         vector<ll> a = cols[i];
@@ -139,6 +143,9 @@ void solve() {
         step_2[i] = cnt;
     }
 
+    // Establish 0/1 DP which decides dp[ith position column we are at][(i-2)th direction][(i-1) direction] = number of collisions occured so far till ith pos
+    // The transition is basically for the (i+1)th pos so b replaces a since we moved a step ahead and the curr direction becomes the last pos
+    // It checks if setting the direction makes sense or not by adding the possible step_1 and step_2 collisions
     vector<vector<vector<ll>>> dp(n+1, vector<vector<ll>>(2, vector<ll>(2, INF)));
 
     dp[2][1][0] = step_1[1];
@@ -158,6 +165,7 @@ void solve() {
         }
     }
 
+    // Since we know that the last column only moves left, we just need to account for the second last column moving left or right
     cout << min(dp[n][0][0], dp[n][1][0]) << "\n";
 
 }
