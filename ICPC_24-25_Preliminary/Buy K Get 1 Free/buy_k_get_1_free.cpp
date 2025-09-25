@@ -103,6 +103,8 @@ void solve() {
     vector<ll> pref(n+1, 0);
     for (ll i = 1; i <= n; ++i) pref[i] = pref[i-1] + c[i];
 
+    // Our answer is pretty much prefix of segment so far - prefix of freebies we can collect
+    // Noticed that freebies occur in a pattern so added that as a recurrence 
     vector<ll> free(n+1, 0);
     for (ll m = 1; m <= n; ++m) {
         if (m >= k + 1) {
